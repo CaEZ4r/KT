@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <string.h>
+#include <cmath>
 using namespace std;
 
 // Класс Image - наследник "системного" класса wxImage
@@ -18,12 +19,17 @@ class Image:public wxImage{
    Image(int w, int h, wxColor back); 
 // деструктор
    ~Image();
+   void DrawRec();
 // рисование линии по двум точкам
    void DrawLine(wxPoint one, wxPoint sec);
 // установить цвет линий
    void setPen(wxColor a);
 // установить цвет заливки
    void setFill(wxColor a);
+   
+   void DrawCirc(wxPoint, int, Image*);
+   void DrawTri(wxPoint, wxPoint, wxPoint);
+   
 // закрасить точку p цветом a
    void ColorPoint(wxPoint p, wxColor a);
 // закрасить прямоугольник цветом а, внутри которого точка p
@@ -86,11 +92,19 @@ void Image::FillRec(wxPoint p, wxColor c){
      for( x = p.x + 1 ; place == check; x++){
           check.Set( GetRed(x,p.y), GetGreen(x,p.y), GetBlue(x,p.y));
      };
-       xp = x - 1;
-  
-     wxRect rec(wxPoint(100,100), wxPoint(50,50));
-     this->SetRGB(rec, c.Red(), c.Green(), c.Blue()); 
+       xp = x - 1; 
+       
+};
 
+void Image::DrawRec(){
+	wxRect rec(wxPoint(1,1), wxPoint(30,30));
+     this->SetRGB(rec, 255, 0, 0);
+};
+
+void Image::DrawTri(wxPoint a, wxPoint b, wxPoint c){
+	DrawLine(a , b);
+	DrawLine(b, c);
+	DrawLine(a, c);
 };
 
 void Image::DrawLine(wxPoint one, wxPoint sec){
@@ -126,6 +140,23 @@ void Image::DrawLine(wxPoint one, wxPoint sec){
    } 
 };
 
+void Image::DrawCirc(wxPoint a, int R, Image *im){
+	int z1, z2;
+	int k1, k2;
+	for (int i = a.x - R; i < a.x + R + 1; i ++) {
+		z1 = a.y + sqrt(pow(R, 2) - pow(a.x - i, 2));
+		z2 = a.y - sqrt(pow(R, 2) - pow(a.x - i, 2));
+		im->ColorPoint(wxPoint(i,z1),wxColor(255, 0,0));
+		im->ColorPoint(wxPoint(i,z2),wxColor(255, 0,0));
+	}
+	for (int i = a.y - R; i < a.y + R + 1; i ++) {
+		k1 = a.x + sqrt(pow(R, 2) - pow(a.y - i, 2));
+		k2 = a.x - sqrt(pow(R, 2) - pow(a.y - i, 2));
+		im->ColorPoint(wxPoint(k1,i),wxColor(255, 0,0));
+		im->ColorPoint(wxPoint(k2,i),wxColor(255, 0,0));
+	}
+};
+
 void Image::saveToFile(string file){
   wxString st1(file.c_str(), wxConvUTF8);
   this->SaveFile(st1,wxBITMAP_TYPE_PNG);
@@ -143,19 +174,16 @@ int main(){
 // имя файла картинки
  string s = "f1.png";
 // установить цвет линий - белый
- im.setPen(wxColor(255,255,255));
+ im.setPen(wxColor(255,0,0));
 // нарисовать линию от точки (20,20) до точки (60,20)
- im.DrawLine(wxPoint(20,20),wxPoint(60,20));
- im.DrawLine(wxPoint(20,20),wxPoint(20,60));
- im.DrawLine(wxPoint(20,60),wxPoint(60,60));
- im.DrawLine(wxPoint(60,20),wxPoint(60,60));
+
+im.DrawCirc(wxPoint(400, 400), 30, &im);
+ im.DrawLine(wxPoint(300,10),wxPoint(400, 40));
+ im.DrawRec();
+im.DrawTri(wxPoint(100, 100), wxPoint(100, 200), wxPoint(300, 200));
  
-// Закрасить прямоугольник, в котором точка  (30,30)
- im.FillRec(wxPoint(30,30), wxColor(255,0,0));
-// Закрасть одну точку внутри прямоугольника
- im.ColorPoint(wxPoint(40,40),wxColor(0,255,0));
-// нарисовать "косую" линию
- im.DrawLine(wxPoint(20,20),wxPoint(30,60));
+ im.ColorPoint(wxPoint(300,300),wxColor(255, 0,0));
+
 // сохранить картинку в файл
  im.saveToFile(s); 
 }
